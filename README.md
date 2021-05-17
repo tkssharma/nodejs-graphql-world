@@ -7,7 +7,7 @@
 
 Node JS Graphql World using Yoga, Apollo and Prisma
 
- Building Graphql APIs using different possiable way 
+ Building Graphql APIs using different possible way 
  
  - using nestjs 
  - using express and typescript + express graphql server 
