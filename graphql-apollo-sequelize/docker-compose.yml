@@ -1,0 +1,24 @@
+version: "3"
+services:
+    node:
+        build: .
+        ports:
+            - 4001:3000
+        volumes:
+            - ./:/usr/src/app
+            - /usr/src/app/node_modules
+        depends_on:
+            - db
+    db:
+        image: mysql:5.7
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: test1
+            MYSQL_USER: root
+            MYSQL_PASSWORD: root
+        volumes:
+        - mysql-data:/var/lib/mysql 
+        ports:
+            - 3306:3306                 
+volumes:
+    mysql-data: {}

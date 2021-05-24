@@ -1,0 +1,23 @@
+{
+   "name": "apollo-server-boilerplate",
+   "version": "0.0.1",
+   "description": "Awesome project developed with TypeORM.",
+   "devDependencies": {
+      "@types/express": "^4.17.1",
+      "@types/graphql": "^14.5.0",
+      "@types/node": "^12.7.12",
+      "ts-node": "8.4.1",
+      "typescript": "3.6.4"
+   },
+   "dependencies": {
+      "apollo-server-express": "^2.9.6",
+      "express": "^4.17.1",
+      "graphql": "^14.5.8",
+      "pg": "^7.12.1",
+      "reflect-metadata": "^0.1.13",
+      "typeorm": "^0.2.19"
+   },
+   "scripts": {
+      "start": "ts-node src/index.ts"
+   }
+}
