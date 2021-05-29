@@ -1,4 +1,4 @@
-import { GraphQLServer } from 'graphql-yoga'
+import { GraphQLServer } from '../../graphql-folder-restructuring-05/src/node_modules/graphql-yoga'
 
 // Scalar types - String, Boolean, Int, Float, ID
 
