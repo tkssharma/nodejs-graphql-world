@@ -1,7 +1,6 @@
-import mongoose from "mongoose";
-import { ObjectID } from "mongodb";
-
+import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
+import { ObjectID } from "mongodb";
 
 ObjectID.prototype.valueOf = function() {
   return this.toString();
@@ -20,6 +19,6 @@ const CommentSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "Post"
   }
-});
+})
 
-export default mongoose.model("Comment", CommentSchema);
+export default mongoose.model('Comment', CommentSchema)

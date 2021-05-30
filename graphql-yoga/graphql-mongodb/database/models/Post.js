@@ -1,7 +1,6 @@
-import mongoose from "mongoose";
-import { ObjectID } from "mongodb";
-
+import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
+import { ObjectID } from "mongodb";
 
 ObjectID.prototype.valueOf = function() {
   return this.toString();
@@ -14,7 +13,8 @@ const PostSchema = new Schema({
   },
   body: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   published: {
     type: Boolean,
@@ -29,17 +29,7 @@ const PostSchema = new Schema({
       type: Schema.Types.ObjectId,
       ref: "Comment"
     }
-  ],
-  date: {
-    published: {
-      type: Date,
-      default: Date.now()
-    },
-    updated: {
-      type: Date,
-      default: Date.now()
-    }
-  }
-});
+  ]
+})
 
-export default mongoose.model("Post", PostSchema);
+export default mongoose.model('Post', PostSchema)
