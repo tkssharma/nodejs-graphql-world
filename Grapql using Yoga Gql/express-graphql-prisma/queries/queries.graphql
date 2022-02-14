@@ -1,0 +1,131 @@
+## possible queries
+{
+  topExperiences {
+    ...ExperienceFragment
+  }
+
+  topHomes {
+    id
+    pricing {
+      id
+      perNight
+    }
+    name
+    description
+    pictures {
+      url
+    }
+    numRatings
+    avgRating
+  }
+
+  topReservations {
+    id
+    slug
+    title
+    avgPricePerPerson
+    pictures {
+      url
+    }
+    title
+    popularity
+    isCurated
+    location {
+      ...LocationFields
+    }
+  }
+
+  homesInPriceRange(min: 0, max: 100) {
+    id
+    pricing {
+      id
+      perNight
+    }
+    name
+    description
+    pictures {
+      url
+    }
+    numRatings
+    avgRating
+  }
+
+  featuredDestinations {
+    id
+    name
+    slug
+    homePreview {
+      url
+    }
+    city {
+      id
+      name
+    }
+    featured
+    popularity
+  }
+
+  cityExperiences: experiencesByCity(
+    cities: [
+      "New York"
+      "Barcelona"
+      "Paris"
+      "Tokyo"
+      "Los Angeles"
+      "Lisbon"
+      "San Francisco"
+      "Sydney"
+      "London"
+      "Rome",
+      "Moss Landing"
+    ]
+  ) {
+    city {
+      name
+    }
+    experiences {
+      ...ExperienceFragment
+    }
+  }
+}
+
+fragment ExperienceFragment on Experience {
+  id
+  category {
+    id
+    mainColor
+    name
+    experience {
+      id
+    }
+  }
+  title
+  location {
+    ...LocationFields
+  }
+  pricePerPerson
+  reviews {
+    id
+    accuracy
+    checkIn
+    cleanliness
+    communication
+    createdAt
+    location
+    stars
+    text
+    value
+  }
+  preview {
+    url
+  }
+  popularity
+}
+
+fragment LocationFields on Location {
+  id
+  lat
+  lng
+  address
+  directions
+}
