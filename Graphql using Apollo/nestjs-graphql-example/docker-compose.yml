@@ -1,0 +1,10 @@
+version: "3.8"
+services: 
+  database:
+    image: postgres:alpine
+    ports:
+      - 5432:5432
+    environment: 
+      POSTGRES_USER: example
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: example
