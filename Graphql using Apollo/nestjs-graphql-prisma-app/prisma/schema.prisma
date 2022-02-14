@@ -1,0 +1,65 @@
+// This is Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource database {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator nestgraphql {
+  provider                   = "node node_modules/prisma-nestjs-graphql"
+  output                     = "../src/@generated"
+  combineScalarFilters = true
+  noAtomicOperations = true
+}
+
+model User {
+  userId           String    @id @default(cuid())
+  email            String    @unique
+  name             String    @unique
+  password         String
+  bio              String?
+  image            String?
+  following        User[]    @relation("UserFollows", references: [userId])
+  followers        User[]    @relation("UserFollows", references: [userId])
+  favoriteArticles Article[] @relation(name: "FavoritedArticles", references: [articleId])
+  articles         Article[] @relation("ArticleAuthor")
+  comments         Comment[]
+}
+
+model Tag {
+  tagId    String    @id @default(cuid())
+  name     String    @unique
+  articles Article[]
+}
+
+model Article {
+  articleId      String    @id @default(cuid())
+  slug           String    @unique
+  title          String
+  description    String
+  body           String
+  tags           Tag[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  favoritesCount Int       @default(0)
+  author         User?     @relation(name: "ArticleAuthor", fields: [authorId], references: [userId])
+  authorId       String?
+  favoritedBy    User[]    @relation(name: "FavoritedArticles", references: [userId])
+  comments       Comment[]
+}
+
+model Comment {
+  commentId String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  body      String
+  author    User     @relation(fields: [authorId], references: [userId])
+  authorId  String
+  article   Article? @relation(fields: [articleId], references: [articleId])
+  articleId String?
+}

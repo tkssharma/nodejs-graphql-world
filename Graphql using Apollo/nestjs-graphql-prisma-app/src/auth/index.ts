@@ -1,0 +1,1 @@
+export { PassportUserFields } from './types';

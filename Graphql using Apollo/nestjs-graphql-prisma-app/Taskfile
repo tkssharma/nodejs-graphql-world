@@ -1,0 +1,161 @@
+#!/bin/bash
+PATH="$PWD/node_modules/.bin":$PATH
+set -e
+
+make_layers() {
+    # mkdir src/resolvers
+    # basename $file
+    files=$(/usr/bin/find src -name *.resolver.ts)
+    for file in $files; do
+        # basename=$(basename $file)
+        ln -Pvf $file src/resolvers
+        # ln -rsv ./src/article/article.resolver.ts ./src/resolvers/article.resolver.ts
+    done
+}
+
+api_spec() {
+    export APIURL='localhost:3000/api'
+    sh test/run-api-tests.sh
+}
+
+build() {
+    set -x
+    rm -rf dist
+    mkdir dist
+
+    # Prepare sources
+    # cp -rf src dist
+    # cat tsconfig.json | jq 'del(.include, .compilerOptions.outDir)' >dist/tsconfig.json
+    # cp -fv README.md LICENSE package.json dist
+
+    # Build
+    nest build --path tsconfig.build.json
+
+    # Copy prisma schema and migrations
+    mkdir -p dist/prisma/migrations
+    if [ -d prisma/migrations ]; then
+        cp -r prisma/migrations dist/prisma
+        cp prisma/schema.prisma dist/prisma
+    fi
+    # Copy @prisma/client
+    mkdir -p dist/node_modules/@prisma/client
+    cp -r node_modules/@prisma/client/* dist/node_modules/@prisma/client
+
+    cd dist
+
+    # Remove spec
+    /usr/bin/find . -name '*.spec.ts' | xargs rm -rf
+
+    # Cleanup
+    rm -vf *.tsbuildinfo tsconfig.json tsconfig.build.json
+    /usr/bin/find . -name '*.ts' | xargs rm -rf
+    cd ..
+    set +x
+}
+
+# Deploy package for monorepo strategy
+# Example: sh Taskfile deploy_package src/subpackage
+# setup global for faster deployment several package:
+# npm i -g semantic-release semantic-release-monorepo @semantic-release/changelog @semantic-release/commit-analyzer @semantic-release/git @semantic-release/github @semantic-release/npm @semantic-release/release-notes-generator remark-cli remark-license
+# npm i --no-save remark-cli remark-license remark-toc
+deploy_package() {
+    set -x
+    root=$(pwd)
+    build_package $1
+    cd $1
+    npx semantic-release -e semantic-release-monorepo
+    cd $root
+    set +x
+}
+
+# build sub package (monorepo)
+build_package() {
+    echo Building package $1
+
+    # Prepare
+    root=$(pwd)
+    rootPackage=$(cat package.json)
+    rootTsConfig=$(cat tsconfig.json)
+
+    # Switching directory to package
+    cd "$root/$1"
+
+    # Clean
+    rm -rfv dist
+    mkdir dist
+
+    build_package_json
+
+    # Merge root and local tsconfig files
+    localTsConfig=$(cat tsconfig.json || echo {})
+    echo "$rootTsConfig" "$localTsConfig" |
+        jq -s '.[0] * .[1]' |
+        jq 'del(.include, .compilerOptions.outDir)' \
+            >dist/tsconfig.json
+
+    # Build
+    cp -rfv *.ts ./dist
+    cd dist
+    /usr/bin/find . -name '*.spec.ts' | xargs rm -rvf
+    tsc --incremental false --project .
+    rm -rvf tsconfig.json
+    cd ..
+    # Return to package directory
+    # Copy other files to dist
+    cp -vf README.md LICENSE package.json dist || true
+    cd $root
+    return 0
+}
+
+# Configure package.json for package
+# $1 - path to subpackage root
+# https://riptutorial.com/bash/example/19531/a-function-that-accepts-named-parameters
+build_package_json() {
+    if [ -z "$root" ]; then
+        local root=$(git rev-parse --show-toplevel)
+        local rootPackage=$(cat $root/package.json)
+    fi
+    if [ -n "$1" ]; then
+        parentScope=$(pwd)
+        cd $1
+    fi
+    [ ! -f package.json ] && npm init -y 1>/dev/null
+    localPackage=$(cat package.json)
+    localPackage=$(echo "$localPackage" | jq '.license = "MIT"')
+    author=$(echo "$localPackage" | jq -r '.author | select (. != null)')
+    if [ -z "$author" ]; then
+        author=$(date +"%Y")
+        localPackage=$(echo "$localPackage" | jq --arg x "$author" '.author = $x')
+    fi
+    # Update homepage field
+    if [ -z $(echo "$localPackage" | jq -r '.homepage | select (. != null)') ]; then
+        rootHomepage=$(echo "$rootPackage" | jq -r '.homepage | select (. != null)' | sed s'/#readme//')
+        homepage="$rootHomepage/tree/master/$1"
+        localPackage=$(echo "$localPackage" | jq --arg x "$homepage" '.homepage = $x')
+    fi
+    echo "$localPackage" >package.json
+    [ -n "$1" ] && cd $parentScope
+    return 0
+}
+
+postbuild() {
+    # if we are on heroku
+    if [ "$STACK" = 'heroku-18' ]; then
+        npm run migrate:up
+    fi
+}
+
+preinstall() {
+    set -x
+    # This is hacky solution to deploy on heroku
+    # https://github.com/prisma/prisma-client-js/issues/184
+    if [ "$STACK" = 'heroku-18' ]; then
+        sed -i 's/provider = "sqlite"/provider = "postgresql"/' prisma/schema.prisma
+        if [ -d prisma/migrations ]; then
+            sed -i 's/provider = "sqlite"/provider = "postgresql"/' prisma/migrations/migration_lock.toml
+        fi
+    fi
+    set +x
+}
+
+"$@"

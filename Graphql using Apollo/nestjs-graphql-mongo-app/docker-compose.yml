@@ -1,0 +1,16 @@
+version: '3.7'
+services:
+  app-server:
+    container_name: app-server
+    environment: 
+      - NODE_ENV=production
+      # If you want to use a cloud service like Mongo Atlas, change this to your connection string,
+      # or remove this like and store the connection string in a .env file so you don't have to commit it
+      # - MONO_DB_CONNECTION_STRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@cndb:27017/${MONGO_INITDB_DATABASE}?authSource=admin
+    env_file:
+      - .env
+    build:
+      context: ./
+    image: app-server
+    ports:
+     - "3000:3000"
