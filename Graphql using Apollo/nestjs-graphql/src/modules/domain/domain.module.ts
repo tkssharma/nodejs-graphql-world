@@ -4,6 +4,9 @@ import * as Joi from 'joi';
 import { TypeOrmModule, TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { PokemonModule } from './pokemon/pokemon.module';
+import { LeagueModule } from './league/league.module';
 
 
 @Module({
@@ -11,7 +14,7 @@ import { join } from 'path';
     ConfigModule.forRoot({
       validationSchema: Joi.object({
         NODE_ENV: Joi.string()
-          .valid('development', 'production', 'test', 'provision')
+          .valid('development', 'production', 'test', 'local')
           .default('development'),
         PORT: Joi.number().default(3000),
         DATABASE_URL: Joi.string().required()
@@ -24,14 +27,16 @@ import { join } from 'path';
         return {
           name: 'default',
           type: 'postgres',
+          logging: true,
           url: configService.get('DATABASE_URL'),
           entities: [__dirname + '/**/**.entity{.ts,.js}'],
-          synchronize: false
+          synchronize: true
         } as TypeOrmModuleAsyncOptions;
       }
     }),
-    GraphQLModule.forRoot({
+    GraphQLModule.forRoot<ApolloDriverConfig>({
       playground: true,
+      driver: ApolloDriver,
       typePaths: ['./**/*.graphql'],
       context: ({ req }) => ({ headers: req.headers }),
       debug: true,
@@ -39,9 +44,10 @@ import { join } from 'path';
         path: join(process.cwd(), 'src/graphql.schema.ts'),
         outputAs: 'class',
       },
-    })
+    }),
+    PokemonModule, LeagueModule
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule { }
+export class DomainModule { }
