@@ -14,7 +14,6 @@ export class ItemsService {
     const createdItem = new this.itemModule(createItemDto);
     return await createdItem.save() as any;
   }
-
   async findAll(): Promise<ItemType[]> {
     return await this.itemModule.find().exec();
   }

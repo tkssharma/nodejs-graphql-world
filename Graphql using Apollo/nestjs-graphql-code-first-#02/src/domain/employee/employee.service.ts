@@ -19,12 +19,12 @@ export class EmployeeService {
 
   async findAll(): Promise<Employee[]> {
     return this.employeeRepository.find({
-      relations: ["categories"]
+      relations: ["categories"],
     });
   }
 
   findOne(id: number): Promise<Employee> {
-    return this.employeeRepository.findOneOrFail({ where: { id } });
+    return this.employeeRepository.findOneOrFail({ where: { id }, relations: ["categories"] });
   }
 
   async update(
@@ -33,7 +33,7 @@ export class EmployeeService {
   ): Promise<Employee> {
     const project = await this.employeeRepository.findOne({ where: { id } });
     if (project) {
-      return await this.employeeRepository.save({...project, ...input});
+      return await this.employeeRepository.save({ ...project, ...input });
     }
   }
 

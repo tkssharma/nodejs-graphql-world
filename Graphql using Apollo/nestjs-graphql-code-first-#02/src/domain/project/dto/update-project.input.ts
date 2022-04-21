@@ -8,6 +8,7 @@ export class UpdateProjectInput extends PartialType(CreateProjectInput) {
 
   @Field()
   name: string;
+  
   @Field(() => Int)
   code: number;
 }
